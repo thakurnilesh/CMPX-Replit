@@ -1,5 +1,6 @@
 C:\Users\nilesh.thakur\OneDrive - Accenture\Whitepaper\ExcelToAPI2\migrate3.xlsx 
 yes
 https://jcitest5.bigmachines.com/rest/v14/migrationPackages
-nileshthakurext
+
 h2EtE2@G7E
+D:\ExcelToAPI\migrate3.xlsx
