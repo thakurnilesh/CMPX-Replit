@@ -31,12 +31,15 @@ class JSONGenerator:
                 'transactionResourceType', 'childName', 'childVariableName', 'childResourceType'
             ]
             
+                         
+            # Fill NA/NaN values with empty strings for the new columns
             for col in required_columns:
-                if col not in df.columns:
+                if col in df.columns:
+                    df[col] = df[col].fillna('')
+                else:
+                    # If column doesn't exist, add it with empty values
                     df[col] = ''
             
-            df = df.fillna('')
-
             # Get package name (should be the same for all rows)
             if df['PackageName'].empty:
                 raise ValueError("PackageName column is empty.")
@@ -78,6 +81,8 @@ class JSONGenerator:
                 is_granular = (item_rows['granular'].astype(str).str.strip().str.upper() == "TRUE").any()
 
                 if is_commerce_item and is_granular:
+                # commerce or granular items
+                    print("Commerce and Granular Item Found")
                     commerce['granular'] = True
                     
                     # Group children by transaction details
@@ -114,6 +119,7 @@ class JSONGenerator:
                                 commerce['children'].append(child)
                 else:
                     # Non-commerce or non-granular items
+                    print("Non-Commerce or Non-Granular Item Found")
                     for _, row in item_rows.iterrows():
                         child = {
                             "name": row['childName'],
@@ -135,19 +141,19 @@ class JSONGenerator:
 if __name__ == "__main__":
     # Create a sample DataFrame to test the class
     data = {
-        'PackageName': ['Auto28AugTest', 'Auto28AugTest'],
-        'itemName': ['Commerce', 'Commerce'],
-        'itemCategory': ['COMMERCE', 'COMMERCE'],
-        'commerceName': ['Paramount Quote to Order', 'Paramount Quote to Order'],
-        'commerceVariableName': ['oraclecpqo_bmClone_2', 'oraclecpqo_bmClone_2'],
-        'resourceType': ['process', 'process'],
-        'granular': ['TRUE', 'TRUE'],
-        'transactionName': ['Transaction', 'Transaction'],
-        'transactionVariableName': ['transaction', 'transaction'],
-        'transactionResourceType': ['document', 'document'],
-        'childName': ['API_Save', 'API_Submit'],
-        'childVariableName': ['aPI_Save_t', 'aPI_Submit_t'],
-        'childResourceType': ['action', 'action']
+           'PackageName': ['Auto28AugTest','Auto28AugTest'],
+        'itemName': ['Document Designer','Commerce'],
+        'itemCategory': ['DOCUMENT_DESIGNER','COMMERCE'],
+        'commerceName': ['Paramount Quote to Order','Paramount Quote to Order'],
+        'commerceVariableName': ['oraclecpqo_bmClone_2','oraclecpqo_bmClone_2'],
+        'resourceType': ['_set','process'],
+        'granular': ['','TRUE'],
+        'transactionName': ['','Transaction'],
+        'transactionVariableName': ['','transaction'],
+        'transactionResourceType': ['','document'],
+        'childName': ['Field Profile Sheet - English','API_Save'],
+        'childVariableName': ['Field Profile Sheet - English','aPI_Save_t'],
+        'childResourceType': ['doc_designer','action']
     }
     df = pd.DataFrame(data)
     

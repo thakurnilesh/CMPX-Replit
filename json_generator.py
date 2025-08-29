@@ -1,19 +1,37 @@
+import pandas as pd
+import numpy as np
+
 class JSONGenerator:
+    """
+    A class to generate a nested JSON payload from a pandas DataFrame.
+    """
     def __init__(self, excel_data):
-        self.excel_data = excel_data
+        """
+        Initializes the JSONGenerator with a DataFrame.
         
+        Args:
+            excel_data (pd.DataFrame): The input data from an Excel file.
+        """
+        if not isinstance(excel_data, pd.DataFrame):
+            raise TypeError("excel_data must be a pandas DataFrame.")
+        self.excel_data = excel_data.copy()  # Work on a copy to avoid modifying the original DataFrame
+
     def generate(self):
         """
-        Generate the JSON payload from Excel data.
+        Generates the JSON payload from the DataFrame.
         """
         try:
+            print("Getting Started")
             df = self.excel_data
-            
-            # Check if new required columns exist
+
+            # Define required columns and fill missing ones with empty strings
             required_columns = [
-                'granular', 'transactionName', 'transactionVariableName', 'transactionResourceType'
+                'PackageName', 'itemName', 'itemCategory', 'commerceName', 'commerceVariableName', 
+                'resourceType', 'granular', 'transactionName', 'transactionVariableName', 
+                'transactionResourceType', 'childName', 'childVariableName', 'childResourceType'
             ]
             
+                         
             # Fill NA/NaN values with empty strings for the new columns
             for col in required_columns:
                 if col in df.columns:
@@ -23,8 +41,10 @@ class JSONGenerator:
                     df[col] = ''
             
             # Get package name (should be the same for all rows)
+            if df['PackageName'].empty:
+                raise ValueError("PackageName column is empty.")
             package_name = df['PackageName'].iloc[0]
-            
+
             # Initialize the JSON structure
             json_payload = {
                 "name": package_name,
@@ -32,26 +52,20 @@ class JSONGenerator:
                     "items": []
                 }
             }
-            
-            # Process each unique item
-            item_names = df['itemName'].unique()
-            
-            for item_name in item_names:
-                # Filter rows for this item
-                item_rows = df[df['itemName'] == item_name]
-                
-                # Get item category (should be the same for all rows of this item)
+
+            # Process each unique item using groupby for efficiency
+            item_groups = df.groupby('itemName')
+
+            for item_name, item_rows in item_groups:
                 item_category = item_rows['itemCategory'].iloc[0]
                 
-                # Create item structure
                 item = {
                     "name": item_name,
                     "category": item_category,
                     "children": []
                 }
-                
-                # Add commerce level (first level children)
-                # These should be the same across all rows for this item
+
+                # Assuming commerce details are consistent for each item group
                 commerce_name = item_rows['commerceName'].iloc[0]
                 commerce_variable_name = item_rows['commerceVariableName'].iloc[0]
                 resource_type = item_rows['resourceType'].iloc[0]
@@ -63,95 +77,88 @@ class JSONGenerator:
                     "children": []
                 }
                 
-                # Special handling for Commerce items with granular=TRUE
-                is_commerce_item = (item_name == "Commerce")
-                
-                # Check if any rows have granular=TRUE
-                has_granular_true = False
-                if is_commerce_item:
-                    for _, row in item_rows.iterrows():
-                        granular_value = str(row['granular']).strip().upper()
-                        if granular_value == "TRUE":
-                            has_granular_true = True
-                            # Add granular field to commerce object
-                            commerce["granular"] = row['granular']
-                            break
-                
-                # Process the rows based on special case or normal case
-                if is_commerce_item:
-                    # Group by transaction details to avoid duplicates
-                    transaction_groups = {}
-                    regular_children = []
+                is_commerce_item = (item_name.lower() == "commerce")
+                is_granular = (item_rows['granular'].astype(str).str.strip().str.upper() == "TRUE").any()
+
+                if is_commerce_item and is_granular:
+                # commerce or granular items
+                    print("Commerce and Granular Item Found")
+                    commerce['granular'] = True
                     
-                    for _, row in item_rows.iterrows():
-                        granular_value = str(row['granular']).strip().upper()
-                        is_granular = granular_value == "TRUE"
+                    # Group children by transaction details
+                    transaction_groups = item_rows.groupby(['transactionName', 'transactionVariableName', 'transactionResourceType'])
+                    
+                    for transaction_details, transaction_rows in transaction_groups:
+                        transaction_name, transaction_variable_name, transaction_resource_type = transaction_details
                         
-                        # Create child object
-                        child = {
-                            "name": row['childName'],
-                            "variableName": row['childVariableName'],
-                            "resourceType": row['childResourceType']
-                        }
-                        
-                        if is_granular and row['transactionName'] and row['transactionVariableName'] and row['transactionResourceType']:
-                            # Get transaction details
-                            transaction_name = row['transactionName']
-                            transaction_variable_name = row['transactionVariableName']
-                            transaction_resource_type = row['transactionResourceType']
+                        if transaction_name and transaction_variable_name and transaction_resource_type:
+                            transaction_obj = {
+                                "name": transaction_name,
+                                "variableName": transaction_variable_name,
+                                "resourceType": transaction_resource_type,
+                                "children": []
+                            }
                             
-                            # Create a key for grouping
-                            transaction_key = f"{transaction_name}_{transaction_variable_name}_{transaction_resource_type}"
-                            
-                            # Initialize transaction if not exists
-                            if transaction_key not in transaction_groups:
-                                transaction_groups[transaction_key] = {
-                                    "transaction_data": {
-                                        "name": transaction_name,
-                                        "variableName": transaction_variable_name,
-                                        "resourceType": transaction_resource_type,
-                                        "children": []
-                                    },
-                                    "children": []
+                            for _, row in transaction_rows.iterrows():
+                                child = {
+                                    "name": row['childName'],
+                                    "variableName": row['childVariableName'],
+                                    "resourceType": row['childResourceType']
                                 }
-                            
-                            # Add child to this transaction
-                            transaction_groups[transaction_key]["children"].append(child)
+                                transaction_obj['children'].append(child)
+                                
+                            commerce['children'].append(transaction_obj)
                         else:
-                            # Regular child processing for non-granular rows or when transaction fields are blank
-                            regular_children.append(child)
-                    
-                    # Add regular children directly to commerce
-                    for child in regular_children:
-                        commerce["children"].append(child)
-                    
-                    # Add transactions to commerce children
-                    for transaction_key, transaction_data in transaction_groups.items():
-                        transaction_obj = transaction_data["transaction_data"]
-                        
-                        # Add children to transaction
-                        for child in transaction_data["children"]:
-                            transaction_obj["children"].append(child)
-                        
-                        # Add transaction to commerce
-                        commerce["children"].append(transaction_obj)
+                            # Handle rows that are not part of a transaction (e.g., granular is false or transaction fields are empty)
+                            for _, row in transaction_rows.iterrows():
+                                child = {
+                                    "name": row['childName'],
+                                    "variableName": row['childVariableName'],
+                                    "resourceType": row['childResourceType']
+                                }
+                                commerce['children'].append(child)
                 else:
-                    # Standard processing for non-Commerce items
+                    # Non-commerce or non-granular items
+                    print("Non-Commerce or Non-Granular Item Found")
                     for _, row in item_rows.iterrows():
                         child = {
                             "name": row['childName'],
                             "variableName": row['childVariableName'],
                             "resourceType": row['childResourceType']
                         }
-                        commerce["children"].append(child)
-                
-                # Add commerce to item
+                        commerce['children'].append(child)
+
                 item["children"].append(commerce)
-                
-                # Add item to payload
                 json_payload["contents"]["items"].append(item)
             
             return json_payload
-            
+
         except Exception as e:
-            raise Exception(f"Failed to generate JSON payload: {str(e)}")
+            # Raise a more informative exception
+            raise RuntimeError(f"Failed to generate JSON payload: {e}")
+
+# Example Usage:
+if __name__ == "__main__":
+    # Create a sample DataFrame to test the class
+    data = {
+           'PackageName': ['Auto28AugTest','Auto28AugTest'],
+        'itemName': ['Document Designer','Commerce'],
+        'itemCategory': ['DOCUMENT_DESIGNER','COMMERCE'],
+        'commerceName': ['Paramount Quote to Order','Paramount Quote to Order'],
+        'commerceVariableName': ['oraclecpqo_bmClone_2','oraclecpqo_bmClone_2'],
+        'resourceType': ['_set','process'],
+        'granular': ['','TRUE'],
+        'transactionName': ['','Transaction'],
+        'transactionVariableName': ['','transaction'],
+        'transactionResourceType': ['','document'],
+        'childName': ['Field Profile Sheet - English','API_Save'],
+        'childVariableName': ['Field Profile Sheet - English','aPI_Save_t'],
+        'childResourceType': ['doc_designer','action']
+    }
+    df = pd.DataFrame(data)
+    
+    generator = JSONGenerator(df)
+    result = generator.generate()
+    
+    import json
+    print(json.dumps(result, indent=4))
