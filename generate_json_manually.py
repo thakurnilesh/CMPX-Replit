@@ -69,13 +69,21 @@ class JSONGenerator:
                 commerce_name = item_rows['commerceName'].iloc[0]
                 commerce_variable_name = item_rows['commerceVariableName'].iloc[0]
                 resource_type = item_rows['resourceType'].iloc[0]
-                
-                commerce = {
-                    "name": commerce_name,
-                    "variableName": commerce_variable_name,
-                    "resourceType": resource_type,
-                    "children": []
-                }
+                if item_name != "Util Library" :
+                    commerce = {
+                        "name": commerce_name,
+                        "variableName": commerce_variable_name,
+                        "resourceType": resource_type,
+                        "children": []
+                    }
+                elif item_name == "Util Library" : 
+                      for _, row in item_rows.iterrows():
+                        commerce = {
+                            "name": row['childName'],
+                            "variableName": row['childVariableName'],
+                            "resourceType": row['childResourceType']
+                        }
+                   
                 
                 is_commerce_item = (item_name.lower() == "commerce")
                 is_granular = (item_rows['granular'].astype(str).str.strip().str.upper() == "TRUE").any()
@@ -117,7 +125,7 @@ class JSONGenerator:
                                     "resourceType": row['childResourceType']
                                 }
                                 commerce['children'].append(child)
-                else:
+                elif item_name != "Util Library" :
                     # Non-commerce or non-granular items
                     print("Non-Commerce or Non-Granular Item Found")
                     for _, row in item_rows.iterrows():
@@ -141,19 +149,19 @@ class JSONGenerator:
 if __name__ == "__main__":
     # Create a sample DataFrame to test the class
     data = {
-           'PackageName': ['Auto28AugTest','Auto28AugTest'],
-        'itemName': ['Document Designer','Commerce'],
-        'itemCategory': ['DOCUMENT_DESIGNER','COMMERCE'],
-        'commerceName': ['Paramount Quote to Order','Paramount Quote to Order'],
-        'commerceVariableName': ['oraclecpqo_bmClone_2','oraclecpqo_bmClone_2'],
-        'resourceType': ['_set','process'],
-        'granular': ['','TRUE'],
+            'PackageName': ['Auto28AugTest','Auto28AugTest'],
+        'itemName': ['Util Library','Commerce'],
+        'itemCategory': ['UTIL_LIBRARY','COMMERCE'],
+        'commerceName': ['','Paramount Quote to Order'],
+        'commerceVariableName': ['','oraclecpqo_bmClone_2'],
+        'resourceType': ['','process'],
+        'granular': ['FALSE','TRUE'],
         'transactionName': ['','Transaction'],
         'transactionVariableName': ['','transaction'],
         'transactionResourceType': ['','document'],
-        'childName': ['Field Profile Sheet - English','API_Save'],
-        'childVariableName': ['Field Profile Sheet - English','aPI_Save_t'],
-        'childResourceType': ['doc_designer','action']
+        'childName': ['CalculateTax','API_Save'],
+        'childVariableName': ['calculateTax','aPI_Save_t'],
+        'childResourceType': ['util_library','action']
     }
     df = pd.DataFrame(data)
     
