@@ -1,6 +1,13 @@
-C:\Users\nilesh.thakur\OneDrive - Accenture\Whitepaper\ExcelToAPI2\migrate3.xlsx 
-yes
+Input Data once the application is run.
+C:\GitHub Repositories\dist\migrate3.xlsx
 https://jcitest5.bigmachines.com/rest/v14/migrationPackages
+username / pas 
 
-h2EtE2@G7E
-D:\ExcelToAPI\migrate3.xlsx
+Steps to generate an exe file 
+
+1. pip install pandas
+2. pip install requests
+3. pip install pandas openpyxl xlrd
+4. pyinstaller --onefile --hidden-import=pandas --hidden-import=openpyxl --hidden-import=xlrd main.py
+
+Fourth command is very important to generate the exe file
