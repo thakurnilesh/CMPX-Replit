@@ -51,10 +51,18 @@ def main():
             print(json.dumps(response.json(), indent=4))
         except:
             print(response.text)
+            
+         # Show success message if API call was successful
+        if response.status_code in [200, 201]:
+            print("\nMigration Package Created")
+        else:
+            print("\nMigration Package creation failed.")
         
     except Exception as e:
         print(f"Error: {str(e)}")
         sys.exit(1)
+    
+    input("\nPress Enter to exit...") #Prevents the console from closing immediately
 
 if __name__ == "__main__":
     main()
