@@ -26,7 +26,7 @@ class JSONGenerator:
 
             # Define required columns and fill missing ones with empty strings
             required_columns = [
-                'PackageName', 'itemName', 'itemCategory', 'commerceName', 'commerceVariableName', 
+                'itemName', 'itemCategory', 'commerceName', 'commerceVariableName', 
                 'resourceType', 'granular', 'transactionName', 'transactionVariableName', 
                 'transactionResourceType', 'childName', 'childVariableName', 'childResourceType'
             ]
@@ -40,10 +40,11 @@ class JSONGenerator:
                     # If column doesn't exist, add it with empty values
                     df[col] = ''
             
+            package_name = input("Enter the Package Name: ")
             # Get package name (should be the same for all rows)
-            if df['PackageName'].empty:
-                raise ValueError("PackageName column is empty.")
-            package_name = df['PackageName'].iloc[0]
+            #if df['PackageName'].empty:
+            #    raise ValueError("PackageName column is empty.")
+            #package_name = df['PackageName'].iloc[0]
 
             # Initialize the JSON structure
             json_payload = {
@@ -126,7 +127,7 @@ class JSONGenerator:
                                 commerce['children'].append(child)
                 elif item_name != "Util Library" :
                     # Non-commerce or non-granular items
-                    print("Non-Commerce or Non-Granular Item Found")
+                   #print("Non-Commerce or Non-Granular Item Found")
                     for _, row in item_rows.iterrows():
                         child = {
                             "name": row['childName'],
@@ -148,7 +149,7 @@ class JSONGenerator:
 if __name__ == "__main__":
     # Create a sample DataFrame to test the class
     data = {
-           'PackageName': ['Auto28AugTest','Auto28AugTest'],
+        #'PackageName': ['Auto28AugTest','Auto28AugTest'],
         'itemName': ['Document Designer','Commerce'],
         'itemCategory': ['DOCUMENT_DESIGNER','COMMERCE'],
         'commerceName': ['Paramount Quote to Order','Paramount Quote to Order'],

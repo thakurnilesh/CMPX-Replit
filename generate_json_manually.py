@@ -149,7 +149,7 @@ class JSONGenerator:
 if __name__ == "__main__":
     # Create a sample DataFrame to test the class
     data = {
-            'PackageName': ['Auto28AugTest','Auto28AugTest'],
+       # 'PackageName': ['Auto28AugTest','Auto28AugTest'],
         'itemName': ['Util Library','Commerce'],
         'itemCategory': ['UTIL_LIBRARY','COMMERCE'],
         'commerceName': ['','Paramount Quote to Order'],
