@@ -26,7 +26,7 @@ class JSONGenerator:
 
             # Define required columns and fill missing ones with empty strings
             required_columns = [
-                'itemName', 'itemCategory', 'commerceName', 'commerceVariableName', 
+                'itemName', 'commerceName', 'commerceVariableName', 
                 'resourceType', 'granular', 'transactionName', 'transactionVariableName', 
                 'transactionResourceType', 'childName', 'childVariableName', 'childResourceType'
             ]
@@ -58,7 +58,19 @@ class JSONGenerator:
             item_groups = df.groupby('itemName')
 
             for item_name, item_rows in item_groups:
-                item_category = item_rows['itemCategory'].iloc[0]
+                #item_category = item_rows['itemCategory'].iloc[0]
+                if item_name == 'Commerce':
+                    item_category = 'COMMERCE'
+                elif item_name == 'Util Library':
+                    item_category = 'UTIL_LIBRARY'
+                elif item_name == 'Document Designer':
+                    item_category = 'DOCUMENT_DESIGNER'
+                elif item_name == 'Email Designer':
+                    item_category = 'EMAIL_DESIGNER'
+                elif item_name == 'Data Table':
+                    item_category = 'DATA_TABLE'
+                else:   
+                    raise ValueError(f"Incorrect Item Name '{item_name}'.Use: Commerce, Util Library, Document Designer, Email Designer, Data Table")
                 
                 item = {
                     "name": item_name,
@@ -151,7 +163,7 @@ if __name__ == "__main__":
     data = {
         #'PackageName': ['Auto28AugTest','Auto28AugTest'],
         'itemName': ['Document Designer','Commerce'],
-        'itemCategory': ['DOCUMENT_DESIGNER','COMMERCE'],
+        #'itemCategory': ['DOCUMENT_DESIGNER','COMMERCE'],
         'commerceName': ['Paramount Quote to Order','Paramount Quote to Order'],
         'commerceVariableName': ['oraclecpqo_bmClone_2','oraclecpqo_bmClone_2'],
         'resourceType': ['_set','process'],

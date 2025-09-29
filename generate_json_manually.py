@@ -26,7 +26,7 @@ class JSONGenerator:
 
             # Define required columns and fill missing ones with empty strings
             required_columns = [
-                'PackageName', 'itemName', 'itemCategory', 'commerceName', 'commerceVariableName', 
+                'itemName', 'itemCategory', 'commerceName', 'commerceVariableName', 
                 'resourceType', 'granular', 'transactionName', 'transactionVariableName', 
                 'transactionResourceType', 'childName', 'childVariableName', 'childResourceType'
             ]
@@ -40,10 +40,11 @@ class JSONGenerator:
                     # If column doesn't exist, add it with empty values
                     df[col] = ''
             
+            package_name = input("Enter the Package Name: ")
             # Get package name (should be the same for all rows)
-            if df['PackageName'].empty:
-                raise ValueError("PackageName column is empty.")
-            package_name = df['PackageName'].iloc[0]
+            #if df['PackageName'].empty:
+            #    raise ValueError("PackageName column is empty.")
+            #package_name = df['PackageName'].iloc[0]
 
             # Initialize the JSON structure
             json_payload = {
@@ -57,7 +58,18 @@ class JSONGenerator:
             item_groups = df.groupby('itemName')
 
             for item_name, item_rows in item_groups:
-                item_category = item_rows['itemCategory'].iloc[0]
+                if item_name == 'Commerce':
+                    item_category = 'COMMERCE'
+                elif item_name == 'Util Library':
+                    item_category = 'UTIL_LIBRARY'
+                elif item_name == 'Document Designer':
+                    item_category = 'DOCUMENT_DESIGNER'
+                elif item_name == 'Email Designer':
+                    item_category = 'EMAIL_DESIGNER'
+                elif item_name == 'Data Table':
+                    item_category = 'DATA_TABLE'
+                else:   
+                    raise ValueError(f"Incorrect Item Name '{item_name}'.Use: Commerce, Util Library, Document Designer, Email Designer, Data Table")
                 
                 item = {
                     "name": item_name,
@@ -150,7 +162,7 @@ if __name__ == "__main__":
     # Create a sample DataFrame to test the class
     data = {
        # 'PackageName': ['Auto28AugTest','Auto28AugTest'],
-        'itemName': ['Util Library','Commerce'],
+        'itemName': ['Util Library2','Commerce'],
         'itemCategory': ['UTIL_LIBRARY','COMMERCE'],
         'commerceName': ['','Paramount Quote to Order'],
         'commerceVariableName': ['','oraclecpqo_bmClone_2'],
@@ -166,7 +178,9 @@ if __name__ == "__main__":
     df = pd.DataFrame(data)
     
     generator = JSONGenerator(df)
-    result = generator.generate()
-    
-    import json
-    print(json.dumps(result, indent=4))
+    try:
+        result = generator.generate()
+        import json
+    except Exception as e:
+        print(f"Error: {e}")
+        input("Press Enter to exit...")

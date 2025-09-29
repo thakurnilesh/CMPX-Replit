@@ -14,8 +14,7 @@ class ExcelParser:
             
             # Check if core required columns exist
             core_required_columns = [
-                'itemName', 'itemCategory', 
-                'commerceName', 'commerceVariableName', 'resourceType',
+                'itemName', 'commerceName', 'commerceVariableName', 'resourceType',
                 'childName', 'childVariableName', 'childResourceType'
             ]
             
