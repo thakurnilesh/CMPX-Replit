@@ -14,7 +14,7 @@ class JSONGenerator:
         """
         if not isinstance(excel_data, pd.DataFrame):
             raise TypeError("excel_data must be a pandas DataFrame.")
-        self.excel_data = excel_data.copy()  # Work on a copy to avoid modifying the original DataFrame
+        self.excel_data = excel_data.copy()  # Work on copy to avoid modifying the original DataFrame
 
     def generate(self):
         """
@@ -28,7 +28,7 @@ class JSONGenerator:
             required_columns = [
                 'itemName', 'commerceName', 'commerceVariableName', 
                 'resourceType', 'granular', 'transactionName', 'transactionVariableName', 
-                'transactionResourceType', 'childName', 'childVariableName', 'childResourceType'
+                'transactionResourceType', 'childVariableName', 'childResourceType'
             ]
             
                          
@@ -92,7 +92,7 @@ class JSONGenerator:
                 elif item_name == "Util Library" : 
                       for _, row in item_rows.iterrows():
                         commerce = {
-                            "name": row['childName'],
+                            "name": row['childVariableName'],
                             "variableName": row['childVariableName'],
                             "resourceType": row['childResourceType']
                         }
@@ -121,7 +121,7 @@ class JSONGenerator:
                             
                             for _, row in transaction_rows.iterrows():
                                 child = {
-                                    "name": row['childName'],
+                                    "name": row['childVariableName'],
                                     "variableName": row['childVariableName'],
                                     "resourceType": row['childResourceType']
                                 }
@@ -132,7 +132,7 @@ class JSONGenerator:
                             # Handle rows that are not part of a transaction (e.g., granular is false or transaction fields are empty)
                             for _, row in transaction_rows.iterrows():
                                 child = {
-                                    "name": row['childName'],
+                                    "name": row['childVariableName'],
                                     "variableName": row['childVariableName'],
                                     "resourceType": row['childResourceType']
                                 }
@@ -142,7 +142,7 @@ class JSONGenerator:
                    #print("Non-Commerce or Non-Granular Item Found")
                     for _, row in item_rows.iterrows():
                         child = {
-                            "name": row['childName'],
+                            "name": row['childVariableName'],
                             "variableName": row['childVariableName'],
                             "resourceType": row['childResourceType']
                         }
@@ -171,7 +171,7 @@ if __name__ == "__main__":
         'transactionName': ['','Transaction'],
         'transactionVariableName': ['','transaction'],
         'transactionResourceType': ['','document'],
-        'childName': ['Field Profile Sheet - English','API_Save'],
+        #'childName': ['Field Profile Sheet - English','API_Save'],
         'childVariableName': ['Field Profile Sheet - English','aPI_Save_t'],
         'childResourceType': ['doc_designer','action']
     }
