@@ -11,3 +11,15 @@ Steps to generate an exe file
 4. pyinstaller --onefile --hidden-import=pandas --hidden-import=openpyxl --hidden-import=xlrd main.py
 
 Fourth command is very important to generate the exe file
+
+--------------------
+
+Important Git Commands
+
+git pull 
+git checkout main
+git status
+git remote -v
+
+git fetch origin
+git reset --hard origin/main
