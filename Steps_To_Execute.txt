@@ -23,3 +23,7 @@ git remote -v
 
 git fetch origin
 git reset --hard origin/main
+
+git add Steps_To_Execute.txt
+git commit -m "Update Steps_To_Execute.txt"
+git push
