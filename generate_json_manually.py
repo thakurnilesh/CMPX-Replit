@@ -14,7 +14,7 @@ class JSONGenerator:
         """
         if not isinstance(excel_data, pd.DataFrame):
             raise TypeError("excel_data must be a pandas DataFrame.")
-        self.excel_data = excel_data.copy()  # Work on a copy to avoid modifying the original DataFrame
+        self.excel_data = excel_data.copy()  # Work on copy to avoid modifying the original DataFrame
 
     def generate(self):
         """
@@ -26,9 +26,9 @@ class JSONGenerator:
 
             # Define required columns and fill missing ones with empty strings
             required_columns = [
-                'itemName', 'itemCategory', 'commerceName', 'commerceVariableName', 
-                'resourceType', 'granular', 'transactionName', 'transactionVariableName', 
-                'transactionResourceType', 'childName', 'childVariableName', 'childResourceType'
+                'itemName', 'commerceName', 'commerceVariableName', 
+                'resourceType', 'granular', 'transactionVariableName', 
+                'transactionResourceType', 'childVariableName', 'childResourceType'
             ]
             
                          
@@ -58,8 +58,18 @@ class JSONGenerator:
             item_groups = df.groupby('itemName')
 
             for item_name, item_rows in item_groups:
+                #item_category = item_rows['itemCategory'].iloc[0]
                 if item_name == 'Commerce':
                     item_category = 'COMMERCE'
+                    # Hardcode transactionName based on transactionVariableName
+                    item_rows.loc[
+                        (item_rows['transactionVariableName'] == 'transaction'),
+                        'transactionName'
+                    ] = 'Transaction'
+                    item_rows.loc[
+                        (item_rows['transactionVariableName'] == 'transactionLine'),
+                        'transactionName'
+                    ] = 'Transaction Line'
                 elif item_name == 'Util Library':
                     item_category = 'UTIL_LIBRARY'
                 elif item_name == 'Document Designer':
@@ -91,11 +101,10 @@ class JSONGenerator:
                 elif item_name == "Util Library" : 
                       for _, row in item_rows.iterrows():
                         commerce = {
-                            "name": row['childName'],
+                            "name": row['childVariableName'],
                             "variableName": row['childVariableName'],
                             "resourceType": row['childResourceType']
                         }
-                   
                 
                 is_commerce_item = (item_name.lower() == "commerce")
                 is_granular = (item_rows['granular'].astype(str).str.strip().str.upper() == "TRUE").any()
@@ -121,7 +130,7 @@ class JSONGenerator:
                             
                             for _, row in transaction_rows.iterrows():
                                 child = {
-                                    "name": row['childName'],
+                                    "name": row['childVariableName'],
                                     "variableName": row['childVariableName'],
                                     "resourceType": row['childResourceType']
                                 }
@@ -132,17 +141,17 @@ class JSONGenerator:
                             # Handle rows that are not part of a transaction (e.g., granular is false or transaction fields are empty)
                             for _, row in transaction_rows.iterrows():
                                 child = {
-                                    "name": row['childName'],
+                                    "name": row['childVariableName'],
                                     "variableName": row['childVariableName'],
                                     "resourceType": row['childResourceType']
                                 }
                                 commerce['children'].append(child)
                 elif item_name != "Util Library" :
                     # Non-commerce or non-granular items
-                    print("Non-Commerce or Non-Granular Item Found")
+                   #print("Non-Commerce or Non-Granular Item Found")
                     for _, row in item_rows.iterrows():
                         child = {
-                            "name": row['childName'],
+                            "name": row['childVariableName'],
                             "variableName": row['childVariableName'],
                             "resourceType": row['childResourceType']
                         }
@@ -161,26 +170,24 @@ class JSONGenerator:
 if __name__ == "__main__":
     # Create a sample DataFrame to test the class
     data = {
-       # 'PackageName': ['Auto28AugTest','Auto28AugTest'],
-        'itemName': ['Util Library2','Commerce'],
-        'itemCategory': ['UTIL_LIBRARY','COMMERCE'],
-        'commerceName': ['','Paramount Quote to Order'],
-        'commerceVariableName': ['','oraclecpqo_bmClone_2'],
-        'resourceType': ['','process'],
-        'granular': ['FALSE','TRUE'],
-        'transactionName': ['','Transaction'],
+        #'PackageName': ['Auto28AugTest','Auto28AugTest'],
+        'itemName': ['Document Designer','Commerce'],
+        #'itemCategory': ['DOCUMENT_DESIGNER','COMMERCE'],
+        'commerceName': ['Paramount Quote to Order','Paramount Quote to Order'],
+        'commerceVariableName': ['oraclecpqo_bmClone_2','oraclecpqo_bmClone_2'],
+        'resourceType': ['_set','process'],
+        'granular': ['','TRUE'],
+        #'transactionName': ['','Transaction'],
         'transactionVariableName': ['','transaction'],
         'transactionResourceType': ['','document'],
-        'childName': ['CalculateTax','API_Save'],
-        'childVariableName': ['calculateTax','aPI_Save_t'],
-        'childResourceType': ['util_library','action']
+        #'childName': ['Field Profile Sheet - English','API_Save'],
+        'childVariableName': ['Field Profile Sheet - English','aPI_Save_t'],
+        'childResourceType': ['doc_designer','action']
     }
     df = pd.DataFrame(data)
     
     generator = JSONGenerator(df)
-    try:
-        result = generator.generate()
-        import json
-    except Exception as e:
-        print(f"Error: {e}")
-        input("Press Enter to exit...")
+    result = generator.generate()
+    
+    import json
+    print(json.dumps(result, indent=4))

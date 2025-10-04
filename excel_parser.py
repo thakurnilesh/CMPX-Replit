@@ -24,7 +24,7 @@ class ExcelParser:
             
             # For new columns, add them with empty values if they don't exist
             new_columns = [
-                'granular', 'transactionName', 'transactionVariableName', 'transactionResourceType'
+                'granular', 'transactionVariableName', 'transactionResourceType'
             ]
             
             for col in new_columns:

@@ -61,6 +61,15 @@ class JSONGenerator:
                 #item_category = item_rows['itemCategory'].iloc[0]
                 if item_name == 'Commerce':
                     item_category = 'COMMERCE'
+                     # Hardcode transactionName based on transactionVariableName
+                    item_rows.loc[
+                        (item_rows['transactionVariableName'] == 'transaction'),
+                        'transactionName'
+                    ] = 'Transaction'
+                    item_rows.loc[
+                        (item_rows['transactionVariableName'] == 'transactionLine'),
+                        'transactionName'
+                    ] = 'Transaction Line'
                 elif item_name == 'Util Library':
                     item_category = 'UTIL_LIBRARY'
                 elif item_name == 'Document Designer':
