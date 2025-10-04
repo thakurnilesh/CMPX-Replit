@@ -78,6 +78,8 @@ class JSONGenerator:
                     item_category = 'EMAIL_DESIGNER'
                 elif item_name == 'Data Table':
                     item_category = 'DATA_TABLE'
+                elif item_name == 'Configuration':
+                    item_category = 'CONFIGURATION'
                 else:   
                     raise ValueError(f"Incorrect Item Name '{item_name}'.Use: Commerce, Util Library, Document Designer, Email Designer, Data Table")
                 
