@@ -93,73 +93,71 @@ class JSONGenerator:
                 commerce_name = item_rows['commerceName'].iloc[0]
                 commerce_variable_name = item_rows['commerceVariableName'].iloc[0]
                 resource_type = item_rows['resourceType'].iloc[0]
-                if item_name != "Util Library" :
+                
+                if item_name == "Util Library":
+                    for _, row in item_rows.iterrows():
+                        commerce = {
+                            "name": row['childVariableName'],
+                            "variableName": row['childVariableName'],
+                            "resourceType": row['childResourceType']
+                        }
+                        item["children"].append(commerce)
+                else:
                     commerce = {
                         "name": commerce_name,
                         "variableName": commerce_variable_name,
                         "resourceType": resource_type,
                         "children": []
                     }
-                elif item_name == "Util Library" : 
-                      for _, row in item_rows.iterrows():
-                        commerce = {
-                            "name": row['childVariableName'],
-                            "variableName": row['childVariableName'],
-                            "resourceType": row['childResourceType']
-                        }
-                
-                is_commerce_item = (item_name.lower() == "commerce")
-                is_granular = (item_rows['granular'].astype(str).str.strip().str.upper() == "TRUE").any()
+                    
+                    is_commerce_item = (item_name.lower() == "commerce")
+                    is_granular = (item_rows['granular'].astype(str).str.strip().str.upper() == "TRUE").any()
 
-                if is_commerce_item and is_granular:
-                # commerce or granular items
-                    print("Commerce and Granular Item Found")
-                    commerce['granular'] = True
-                    
-                    # Group children by transaction details
-                    transaction_groups = item_rows.groupby(['transactionName', 'transactionVariableName', 'transactionResourceType'])
-                    
-                    for transaction_details, transaction_rows in transaction_groups:
-                        transaction_name, transaction_variable_name, transaction_resource_type = transaction_details
+                    if is_commerce_item and is_granular:
+                        print("Commerce and Granular Item Found")
+                        commerce['granular'] = True
                         
-                        if transaction_name and transaction_variable_name and transaction_resource_type:
-                            transaction_obj = {
-                                "name": transaction_name,
-                                "variableName": transaction_variable_name,
-                                "resourceType": transaction_resource_type,
-                                "children": []
-                            }
+                        # Group children by transaction details
+                        transaction_groups = item_rows.groupby(['transactionName', 'transactionVariableName', 'transactionResourceType'])
+                        
+                        for transaction_details, transaction_rows in transaction_groups:
+                            transaction_name, transaction_variable_name, transaction_resource_type = transaction_details
                             
-                            for _, row in transaction_rows.iterrows():
-                                child = {
-                                    "name": row['childVariableName'],
-                                    "variableName": row['childVariableName'],
-                                    "resourceType": row['childResourceType']
+                            if transaction_name and transaction_variable_name and transaction_resource_type:
+                                transaction_obj = {
+                                    "name": transaction_name,
+                                    "variableName": transaction_variable_name,
+                                    "resourceType": transaction_resource_type,
+                                    "children": []
                                 }
-                                transaction_obj['children'].append(child)
                                 
-                            commerce['children'].append(transaction_obj)
-                        else:
-                            # Handle rows that are not part of a transaction (e.g., granular is false or transaction fields are empty)
-                            for _, row in transaction_rows.iterrows():
-                                child = {
-                                    "name": row['childVariableName'],
-                                    "variableName": row['childVariableName'],
-                                    "resourceType": row['childResourceType']
-                                }
-                                commerce['children'].append(child)
-                elif item_name != "Util Library" :
-                    # Non-commerce or non-granular items
-                   #print("Non-Commerce or Non-Granular Item Found")
-                    for _, row in item_rows.iterrows():
-                        child = {
-                            "name": row['childVariableName'],
-                            "variableName": row['childVariableName'],
-                            "resourceType": row['childResourceType']
-                        }
-                        commerce['children'].append(child)
+                                for _, row in transaction_rows.iterrows():
+                                    child = {
+                                        "name": row['childVariableName'],
+                                        "variableName": row['childVariableName'],
+                                        "resourceType": row['childResourceType']
+                                    }
+                                    transaction_obj['children'].append(child)
+                                    
+                                commerce['children'].append(transaction_obj)
+                            else:
+                                for _, row in transaction_rows.iterrows():
+                                    child = {
+                                        "name": row['childVariableName'],
+                                        "variableName": row['childVariableName'],
+                                        "resourceType": row['childResourceType']
+                                    }
+                                    commerce['children'].append(child)
+                    else:
+                        for _, row in item_rows.iterrows():
+                            child = {
+                                "name": row['childVariableName'],
+                                "variableName": row['childVariableName'],
+                                "resourceType": row['childResourceType']
+                            }
+                            commerce['children'].append(child)
 
-                item["children"].append(commerce)
+                    item["children"].append(commerce)
                 json_payload["contents"]["items"].append(item)
             
             return json_payload
