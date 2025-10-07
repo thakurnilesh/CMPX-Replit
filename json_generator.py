@@ -26,8 +26,8 @@ class JSONGenerator:
 
             # Define required columns and fill missing ones with empty strings
             required_columns = [
-                'itemName', 'commerceVariableName', 
-                'granular', 'transactionVariableName', 
+                'itemName', 'commerceName', 'commerceVariableName', 
+                'resourceType', 'granular', 'transactionVariableName', 
                 'childVariableName', 'childResourceType'
             ]
             
@@ -40,37 +40,21 @@ class JSONGenerator:
                     # If column doesn't exist, add it with empty values
                     df[col] = ''
             
-            # Initialize new columns
+            # Initialize transactionName and transactionResourceType columns
             df['transactionName'] = ''
             df['transactionResourceType'] = ''
-            df['commerceName'] = ''
-            df['resourceType'] = ''
             
-            # Apply logic for each row
+            # Apply new logic for transactionResourceType and transactionName
             for idx, row in df.iterrows():
-                # Rule for transactionResourceType: If childResourceType is NOT "integration" AND transactionVariableName is not NULL, set to "document"
+                # Rule 2: If childResourceType is NOT "integration" AND transactionVariableName is not NULL, hardcode transactionResourceType to "document"
                 if row['childResourceType'] != 'integration' and row['transactionVariableName'] != '':
                     df.at[idx, 'transactionResourceType'] = 'document'
                 
-                # Rule for transactionName based on transactionVariableName
+                # Rule 3: Set transactionName based on transactionVariableName
                 if row['transactionVariableName'] == 'transaction':
                     df.at[idx, 'transactionName'] = 'Transaction'
                 elif row['transactionVariableName'] == 'transactionLine':
                     df.at[idx, 'transactionName'] = 'Transaction Line'
-                
-                # Rule for resourceType based on childResourceType
-                if row['childResourceType'] == 'data_table':
-                    df.at[idx, 'resourceType'] = 'data_table_folder'
-                elif row['childResourceType'] in ['doc_designer', 'email_designer']:
-                    df.at[idx, 'resourceType'] = '_set'
-                elif row['childResourceType'] == 'util_library':
-                    df.at[idx, 'resourceType'] = ' '
-                else:
-                    df.at[idx, 'resourceType'] = 'process'
-                
-                # Rule for commerceName: If commerceVariableName is NOT NULL, commerceName = commerceVariableName
-                if row['commerceVariableName'] != '':
-                    df.at[idx, 'commerceName'] = row['commerceVariableName']
             
             package_name = input("Enter the Package Name: ")
             # Get package name (should be the same for all rows)
