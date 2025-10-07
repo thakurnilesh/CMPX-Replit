@@ -14,7 +14,7 @@ class ExcelParser:
             
             # Check if core required columns exist
             core_required_columns = [
-                'itemName', 'commerceName', 'commerceVariableName', 'resourceType',
+                'itemName', 'commerceVariableName',
                 'childVariableName', 'childResourceType'
             ]
             
@@ -24,7 +24,7 @@ class ExcelParser:
             
             # For new columns, add them with empty values if they don't exist
             new_columns = [
-                'granular', 'transactionVariableName', 'transactionResourceType'
+                'granular', 'transactionVariableName'
             ]
             
             for col in new_columns:
