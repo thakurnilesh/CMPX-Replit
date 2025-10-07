@@ -26,7 +26,7 @@ class JSONGenerator:
 
             # Define required columns and fill missing ones with empty strings
             required_columns = [
-                'itemName', 'commerceName', 'commerceVariableName', 
+                'itemName', 'commerceVariableName', 
                 'resourceType', 'granular', 'transactionVariableName', 
                 'childVariableName', 'childResourceType'
             ]
@@ -40,21 +40,26 @@ class JSONGenerator:
                     # If column doesn't exist, add it with empty values
                     df[col] = ''
             
-            # Initialize transactionName and transactionResourceType columns
+            # Initialize derived columns
             df['transactionName'] = ''
             df['transactionResourceType'] = ''
+            df['commerceName'] = ''
             
-            # Apply new logic for transactionResourceType and transactionName
+            # Apply logic for each row
             for idx, row in df.iterrows():
-                # Rule 2: If childResourceType is NOT "integration" AND transactionVariableName is not NULL, hardcode transactionResourceType to "document"
+                # Rule: If childResourceType is NOT "integration" AND transactionVariableName is not NULL, set transactionResourceType to "document"
                 if row['childResourceType'] != 'integration' and row['transactionVariableName'] != '':
                     df.at[idx, 'transactionResourceType'] = 'document'
                 
-                # Rule 3: Set transactionName based on transactionVariableName
+                # Rule: Set transactionName based on transactionVariableName
                 if row['transactionVariableName'] == 'transaction':
                     df.at[idx, 'transactionName'] = 'Transaction'
                 elif row['transactionVariableName'] == 'transactionLine':
                     df.at[idx, 'transactionName'] = 'Transaction Line'
+                
+                # Rule: If commerceVariableName is NOT NULL, set commerceName = commerceVariableName
+                if row['commerceVariableName'] != '':
+                    df.at[idx, 'commerceName'] = row['commerceVariableName']
             
             package_name = input("Enter the Package Name: ")
             # Get package name (should be the same for all rows)
