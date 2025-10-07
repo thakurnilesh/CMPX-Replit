@@ -27,8 +27,8 @@ class JSONGenerator:
             # Define required columns and fill missing ones with empty strings
             required_columns = [
                 'itemName', 'commerceName', 'commerceVariableName', 
-                'resourceType', 'granular', 'transactionName', 'transactionVariableName', 
-                'transactionResourceType', 'childVariableName', 'childResourceType'
+                'resourceType', 'granular', 'transactionVariableName', 
+                'childVariableName', 'childResourceType'
             ]
             
                          
@@ -39,6 +39,22 @@ class JSONGenerator:
                 else:
                     # If column doesn't exist, add it with empty values
                     df[col] = ''
+            
+            # Initialize transactionName and transactionResourceType columns
+            df['transactionName'] = ''
+            df['transactionResourceType'] = ''
+            
+            # Apply new logic for transactionResourceType and transactionName
+            for idx, row in df.iterrows():
+                # Rule 2: If childResourceType is NOT "integration" AND transactionVariableName is not NULL, hardcode transactionResourceType to "document"
+                if row['childResourceType'] != 'integration' and row['transactionVariableName'] != '':
+                    df.at[idx, 'transactionResourceType'] = 'document'
+                
+                # Rule 3: Set transactionName based on transactionVariableName
+                if row['transactionVariableName'] == 'transaction':
+                    df.at[idx, 'transactionName'] = 'Transaction'
+                elif row['transactionVariableName'] == 'transactionLine':
+                    df.at[idx, 'transactionName'] = 'Transaction Line'
             
             package_name = input("Enter the Package Name: ")
             # Get package name (should be the same for all rows)
@@ -58,18 +74,8 @@ class JSONGenerator:
             item_groups = df.groupby('itemName')
 
             for item_name, item_rows in item_groups:
-                #item_category = item_rows['itemCategory'].iloc[0]
                 if item_name == 'Commerce':
                     item_category = 'COMMERCE'
-                     # Hardcode transactionName based on transactionVariableName
-                    item_rows.loc[
-                        (item_rows['transactionVariableName'] == 'transaction'),
-                        'transactionName'
-                    ] = 'Transaction'
-                    item_rows.loc[
-                        (item_rows['transactionVariableName'] == 'transactionLine'),
-                        'transactionName'
-                    ] = 'Transaction Line'
                 elif item_name == 'Util Library':
                     item_category = 'UTIL_LIBRARY'
                 elif item_name == 'Document Designer':
