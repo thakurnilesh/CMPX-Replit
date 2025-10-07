@@ -27,7 +27,7 @@ class JSONGenerator:
             # Define required columns and fill missing ones with empty strings
             required_columns = [
                 'itemName', 'commerceVariableName', 
-                'resourceType', 'granular', 'transactionVariableName', 
+                'granular', 'transactionVariableName', 
                 'childVariableName', 'childResourceType'
             ]
             
@@ -44,6 +44,7 @@ class JSONGenerator:
             df['transactionName'] = ''
             df['transactionResourceType'] = ''
             df['commerceName'] = ''
+            df['resourceType'] = ''
             
             # Apply logic for each row
             for idx, row in df.iterrows():
@@ -60,6 +61,14 @@ class JSONGenerator:
                 # Rule: If commerceVariableName is NOT NULL, set commerceName = commerceVariableName
                 if row['commerceVariableName'] != '':
                     df.at[idx, 'commerceName'] = row['commerceVariableName']
+                
+                # Rule: Set resourceType based on itemName
+                if row['itemName'] == 'Commerce':
+                    df.at[idx, 'resourceType'] = 'process'
+                elif row['itemName'] in ['Document Designer', 'Email Designer']:
+                    df.at[idx, 'resourceType'] = '_set'
+                elif row['itemName'] == 'Data Table':
+                    df.at[idx, 'resourceType'] = 'data_table_folder'
             
             package_name = input("Enter the Package Name: ")
             # Get package name (should be the same for all rows)
