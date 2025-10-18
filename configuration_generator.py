@@ -6,10 +6,13 @@ class ConfigurationGenerator:
     def __init__(self, df: pd.DataFrame):
         self.df = df
         
-    def generate(self) -> Dict[str, Any]:
+    def generate(self, package_name: str) -> Dict[str, Any]:
         """
         Generate Configuration JSON payload from Excel data.
         Builds a nested tree structure based on delimiter-separated commerceVariableName.
+        
+        Args:
+            package_name: The name of the migration package
         """
         configuration_root = {
             "name": "Configuration",
@@ -21,6 +24,7 @@ class ConfigurationGenerator:
         configuration_root["children"] = tree
         
         return {
+            "name": package_name,
             "contents": {
                 "items": [configuration_root]
             }

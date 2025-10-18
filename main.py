@@ -31,8 +31,9 @@ def main():
         if has_configuration and not has_other_items:
             # Only Configuration items - use ConfigurationGenerator
             print("Detected Configuration items only...")
+            package_name = input("Enter the Package Name: ")
             generator = ConfigurationGenerator(excel_data)
-            payload = generator.generate()
+            payload = generator.generate(package_name)
         elif not has_configuration and has_other_items:
             # Only non-Configuration items - use existing JSONGenerator
             print("Detected standard items...")
