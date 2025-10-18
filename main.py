@@ -5,6 +5,7 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 from excel_parser import ExcelParser
 from json_generator import JSONGenerator
+from configuration_generator import ConfigurationGenerator
 from api_client import APIClient
 
 def main():
@@ -20,10 +21,28 @@ def main():
         parser = ExcelParser(excel_file)
         excel_data = parser.parse()
         
+        # Check if we have Configuration items
+        has_configuration = (excel_data['itemName'] == 'Configuration').any()
+        has_other_items = (excel_data['itemName'] != 'Configuration').any()
+        
         # Generate JSON payload
         print("Generating JSON payload...")
-        generator = JSONGenerator(excel_data)
-        payload = generator.generate()
+        
+        if has_configuration and not has_other_items:
+            # Only Configuration items - use ConfigurationGenerator
+            print("Detected Configuration items only...")
+            generator = ConfigurationGenerator(excel_data)
+            payload = generator.generate()
+        elif not has_configuration and has_other_items:
+            # Only non-Configuration items - use existing JSONGenerator
+            print("Detected standard items...")
+            generator = JSONGenerator(excel_data)
+            payload = generator.generate()
+        else:
+            # Mixed items - for now, handle them separately (future enhancement)
+            print("Error: Mixed Configuration and non-Configuration items not yet supported.")
+            print("Please use separate Excel files for Configuration and other items.")
+            return
         
         # Display the generated JSON for verification
         print("\nGenerated JSON Payload:")
