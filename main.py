@@ -56,7 +56,8 @@ def main():
             return
         
         # Get API details
-        api_endpoint = input("\nEnter the API endpoint URL: ")
+        cpq_instance = input("\nEnter the CPQ instance name: ")
+        api_endpoint = f"{cpq_instance}/rest/v14/migrationPackages"
         username = input("Enter username for Basic Auth: ")
         password = input("Enter password for Basic Auth: ")
         
