@@ -55,6 +55,20 @@ The Excel file should contain these columns:
 - Configuration (CONFIGURATION)
 
 ## Recent Changes
+- **2025-10-18**: Implemented two-step API call for mixed items
+  - Added `patch_data()` method to `api_client.py` for PATCH requests
+  - Implemented automatic CPQ instance name → endpoint URL conversion
+  - User enters CPQ instance (e.g., https://jcitest5.bigmachines.com), system appends `/rest/v14/migrationPackages`
+  - **Three API call scenarios**:
+    1. **Only standard items**: Single POST to create package
+    2. **Only Configuration items**: Single POST to create package
+    3. **Mixed items**: Two-step flow:
+       - Step 1: POST to create package with standard items (Commerce, Util Library, etc.)
+       - Step 2: PATCH to update package with Configuration items using identifier
+  - Identifier format: `{packageName.toLowerCase()}_v1`
+  - PATCH endpoint: `/rest/v19/migrationPackages/{identifier}`
+  - Automatic filtering of Excel data by item type for two-step processing
+
 - **2025-10-18**: Added Configuration item support
   - Created `configuration_generator.py` for handling Configuration items
   - Implemented nested tree structure generation from delimiter-separated paths
