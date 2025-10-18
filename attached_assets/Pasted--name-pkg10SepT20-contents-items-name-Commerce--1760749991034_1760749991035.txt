@@ -1,0 +1,168 @@
+{
+  "name": "pkg10SepT20",
+  "contents": {
+    "items": [
+      {
+        "name": "Commerce",
+        "category": "COMMERCE",
+        "children": [
+          {
+            "name": "Paramount Quote to Order (oraclecpqo_bmClone_2)",
+            "variableName": "oraclecpqo_bmClone_2",
+            "resourceType": "process",
+            "granular": true,
+            "children": [
+              {
+                "name": "Transaction",
+                "variableName": "transaction",
+                "resourceType": "document",
+                "children": [
+                  {
+                    "name": "API_Save",
+                    "variableName": "aPI_Save_t",
+                    "resourceType": "action"
+                  },
+                  {
+                    "name": "Region",
+                    "variableName": "region_t",
+                    "resourceType": "attribute"
+                  },
+                  {
+                    "name": "Test_SR",
+                    "variableName": "test_SR",
+                    "resourceType": "library"
+                  },
+                  {
+                    "name": "Account Location Array",
+                    "variableName": "accountLocationArray_t",
+                    "resourceType": "array_attr_set",
+                    "children": [
+                      {
+                        "name": "Location Name",
+                        "variableName": "locationName_t",
+                        "resourceType": "attribute"
+                      }
+                    ]
+                  },
+				  {
+                    "name": "Constraint Margin Rate based on  Add Tax",
+                    "variableName": "marginRateBasedOnFreightAndAddTax",
+                    "resourceType": "rule"
+                  }
+                ]
+              },
+              {
+                "name": "Transaction Line",
+                "variableName": "transactionLine",
+                "resourceType": "document",
+                "children": [
+                  {
+                    "name": "Back",
+                    "variableName": "back_l",
+                    "resourceType": "action"
+                  },
+                  {
+                    "name": "Document Number",
+                    "variableName": "documentNumber_l",
+                    "resourceType": "attribute"
+                  },
+                   {
+                    "name": "Tax Exempt Reason",
+                    "variableName": "taxExemptReason",
+                    "resourceType": "rule"
+                  }
+                ]
+              },
+			  {
+                                "name": "User Import",
+                                "variableName": "oRCL_SFDC_UserImport",
+                                "resourceType": "integration"
+                            }
+            ]
+          }
+        ]
+      },
+	    {
+        "name": "Util Library",
+        "category": "UTIL_LIBRARY",
+        "children": [
+          {
+            
+                "name": "CalculateTax",
+                "variableName": "calculateTax",
+                "resourceType": "util_library",
+                "resourceTypeLabel": "Util Library"
+           
+          }
+        ]
+      },
+      {
+        "name": "Document Designer",
+        "category": "DOCUMENT_DESIGNER",
+        "children": [
+          {
+            "name": "Paramount Quote to Order (oraclecpqo_bmClone_2)",
+            "variableName": "oraclecpqo_bmClone_2",
+            "resourceType": "_set",
+            "resourceTypeLabel": "Document Designer",
+            "children": [
+              {
+                "name": "Field Profile Sheet - English",
+                "variableName": "Field Profile Sheet - English",
+                "resourceType": "doc_designer",
+                "resourceTypeLabel": "Document Designer"
+              },
+              {
+                "name": "Job Profile Sheet - English",
+                "variableName": "Job Profile Sheet - English",
+                "resourceType": "doc_designer",
+                "resourceTypeLabel": "Document Designer"
+              }
+            ]
+          }
+        ]
+      },
+       {
+        "name": "Email Designer",
+        "category": "EMAIL_DESIGNER",
+        "children": [
+          {
+            "name": "Paramount Quote to Order (oraclecpqo_bmClone_2)",
+            "variableName": "oraclecpqo_bmClone_2",
+            "resourceType": "_set",
+            "resourceTypeLabel": "Email Designer",
+            "children": [
+              {
+                "name": "Final Approval Notification For DOA - English",
+                "variableName": "Final Approval Notification For DOA - English",
+                "resourceType": "email_designer",
+                "resourceTypeLabel": "Email Designer"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Data Table",
+        "category": "DATA_TABLE",
+        "children": [
+          {
+            "name": "BOM",
+            "variableName": "bOM",
+            "resourceType": "data_table_folder",
+            "resourceTypeLabel": "Data Table",
+            "children": [
+              {
+                "name": "Oracle_BomItemDef",
+                "variableName": "Oracle_BomItemDef",
+                "resourceType": "data_table",
+                "resourceTypeLabel": "Data Table",
+                "granular": false
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
