@@ -1,0 +1,73 @@
+{
+    "name": "Oct18ConfigPackTest33",
+    "contents": {
+        "items": [
+            {
+                "name": "Configuration",
+                "category": "CONFIGURATION",
+                "children": [
+                    {
+                        "name": "Fire",
+                        "variableName": "fireDomain",
+                        "resourceType": "product_family",
+                        "granular": true,
+                        "children": [
+                            {
+                                "name": "All Product Family",
+                                "variableName": "All Product Family",
+                                "resourceType": "all_product_family",
+                                "granular": true,
+                                "children": [
+                                    {
+                                        "name": "Fire",
+                                        "variableName": "fireDomain",
+                                        "resourceType": "product_family",
+                                        "granular": true,
+                                        "children": [
+                                            {
+                                                "name": "Install",
+                                                "variableName": "install",
+                                                "resourceType": "product_line",
+                                                "granular": true,
+                                                "children": [
+                                                    {
+                                                        "name": "Expense",
+                                                        "variableName": "expense",
+                                                        "resourceType": "model",
+                                                        "granular": true,
+                                                        "children": [
+                                                            {
+                                                                "name": "testAndDel",
+                                                                "variableName": "testAndDel",
+                                                                "resourceType": "action"
+                                                            },
+                                                            {
+                                                                "name": "serviceContractType",
+                                                                "variableName": "serviceContractType",
+                                                                "resourceType": "attribute"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "name": "transactionDefaultAttributeValues",
+                                                        "variableName": "transactionDefaultAttributeValues",
+                                                        "resourceType": "attribute"
+                                                    },
+                                                    {
+                                                        "name": "installLineAction",
+                                                        "variableName": "installLineAction",
+                                                        "resourceType": "action"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
