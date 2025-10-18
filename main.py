@@ -1,6 +1,8 @@
 import argparse
 import json
 import sys
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 from excel_parser import ExcelParser
 from json_generator import JSONGenerator
 from api_client import APIClient
