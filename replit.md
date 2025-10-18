@@ -12,9 +12,11 @@ The tool automates the process of creating migration packages by:
 ## Project Structure
 - `main.py` - Main entry point and user interface
 - `excel_parser.py` - Handles Excel file parsing using pandas
-- `json_generator.py` - Generates JSON payloads from parsed Excel data
+- `json_generator.py` - Generates JSON payloads for standard items (Commerce, Util Library, etc.)
+- `configuration_generator.py` - Generates JSON payloads for Configuration items with nested tree structure
 - `api_client.py` - Manages API communication with Basic Auth
-- `migrate3.xlsx` - Sample Excel file for testing
+- `migrate3.xlsx` - Sample Excel file for testing standard items
+- `ConfigTracker2.xlsx` - Sample Excel file for testing Configuration items
 
 ## Dependencies
 - pandas (2.0.3) - Excel file parsing
@@ -53,6 +55,14 @@ The Excel file should contain these columns:
 - Configuration (CONFIGURATION)
 
 ## Recent Changes
+- **2025-10-18**: Added Configuration item support
+  - Created `configuration_generator.py` for handling Configuration items
+  - Implemented nested tree structure generation from delimiter-separated paths
+  - Added automatic detection and routing of Configuration vs standard items
+  - Configuration items use `commerceVariableName` with dot-delimiter (e.g., "fireDomain.install.expense")
+  - Generates hierarchical JSON with "All Product Family" wrapper
+  - Supports product_family → product_line → model hierarchy
+
 - **2025-10-07**: Initial Replit setup
   - Installed Python 3.11 and all required dependencies
   - Fixed variable binding issues in json_generator.py

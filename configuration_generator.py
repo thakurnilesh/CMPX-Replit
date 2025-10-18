@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Set
 
 
 class ConfigurationGenerator:
@@ -18,7 +18,6 @@ class ConfigurationGenerator:
         }
         
         tree = self._build_tree()
-        
         configuration_root["children"] = tree
         
         return {
@@ -30,9 +29,9 @@ class ConfigurationGenerator:
     def _build_tree(self) -> List[Dict[str, Any]]:
         """
         Build the nested tree structure from Configuration rows.
-        Returns the list of top-level children (product families).
         """
-        tree_dict = {}
+        # Group data by path
+        path_data = {}
         
         for _, row in self.df.iterrows():
             commerce_var = str(row['commerceVariableName'])
@@ -43,98 +42,54 @@ class ConfigurationGenerator:
             
             path_segments = commerce_var.split('.')
             
-            self._insert_into_tree(
-                tree_dict, 
-                path_segments, 
-                transaction_var, 
-                child_var, 
-                child_resource,
-                granular
-            )
-        
-        return self._convert_tree_to_list(tree_dict)
-    
-    def _insert_into_tree(
-        self, 
-        tree_dict: Dict, 
-        path_segments: List[str], 
-        transaction_var: str,
-        child_var: str,
-        child_resource: str,
-        granular: bool
-    ):
-        """
-        Insert a path and its child into the tree dictionary.
-        """
-        current_level = tree_dict
-        
-        for i, segment in enumerate(path_segments):
-            if segment not in current_level:
-                current_level[segment] = {
-                    '_info': {
-                        'variableName': segment,
-                        'name': segment.capitalize(),
-                        'granular': granular
-                    },
-                    '_children': {},
-                    '_leaf_children': []
+            # Store path information
+            if commerce_var not in path_data:
+                path_data[commerce_var] = {
+                    'segments': path_segments,
+                    'transaction_type': transaction_var,
+                    'granular': granular,
+                    'children': []
                 }
             
-            if i == len(path_segments) - 1:
-                resource_type = transaction_var
-                current_level[segment]['_info']['resourceType'] = resource_type
-                
-                leaf_child = {
+            # Add unique children only
+            child_key = f"{child_var}_{child_resource}"
+            existing_children = [f"{c['variableName']}_{c['resourceType']}" 
+                                for c in path_data[commerce_var]['children']]
+            
+            if child_key not in existing_children:
+                path_data[commerce_var]['children'].append({
                     'name': child_var,
                     'variableName': child_var,
                     'resourceType': child_resource
-                }
-                current_level[segment]['_leaf_children'].append(leaf_child)
-            else:
-                current_level = current_level[segment]['_children']
+                })
         
-        self._determine_intermediate_resource_types(tree_dict, transaction_var)
+        # Build the tree structure
+        return self._construct_hierarchy(path_data)
     
-    def _determine_intermediate_resource_types(self, tree_dict: Dict, deepest_type: str):
+    def _construct_hierarchy(self, path_data: Dict) -> List[Dict[str, Any]]:
         """
-        Determine resource types for intermediate nodes based on the deepest level type.
-        Hierarchy: product_family > product_line > model
+        Construct the hierarchical tree structure with proper nesting.
         """
-        type_hierarchy = ['product_family', 'product_line', 'model']
+        # Find the top-level product_family (first segment of all paths)
+        top_level_nodes = {}
         
-        if deepest_type not in type_hierarchy:
-            return
+        for path, data in path_data.items():
+            segments = data['segments']
+            if len(segments) > 0:
+                top_segment = segments[0]
+                if top_segment not in top_level_nodes:
+                    top_level_nodes[top_segment] = {
+                        'variableName': top_segment,
+                        'name': top_segment.capitalize(),
+                        'resourceType': 'product_family',
+                        'granular': data['granular']
+                    }
         
-        deepest_index = type_hierarchy.index(deepest_type)
-        
-        def assign_types(node_dict, depth=0):
-            for key, node in node_dict.items():
-                if '_info' in node:
-                    if 'resourceType' not in node['_info']:
-                        index = max(0, deepest_index - depth)
-                        node['_info']['resourceType'] = type_hierarchy[index]
-                    
-                    if node['_children']:
-                        assign_types(node['_children'], depth + 1)
-        
-        assign_types(tree_dict)
-    
-    def _convert_tree_to_list(self, tree_dict: Dict) -> List[Dict[str, Any]]:
-        """
-        Convert the tree dictionary to the final nested list structure.
-        Adds the "All Product Family" wrapper.
-        """
+        # Build complete structure for each top-level node
         result = []
-        
-        for key, node in tree_dict.items():
-            node_obj = {
-                'name': node['_info']['name'],
-                'variableName': node['_info']['variableName'],
-                'resourceType': node['_info']['resourceType'],
-                'granular': node['_info']['granular']
-            }
-            
-            all_product_family_wrapper = {
+        for top_var, top_node in top_level_nodes.items():
+            # Add All Product Family wrapper with duplicated top-level inside
+            all_product_family = {
                 'name': 'All Product Family',
                 'variableName': 'All Product Family',
                 'resourceType': 'all_product_family',
@@ -142,40 +97,113 @@ class ConfigurationGenerator:
                 'children': []
             }
             
-            nested_children = self._build_nested_structure(node)
+            # Create duplicate of top-level node to go inside All Product Family
+            inner_top_node = {
+                'name': top_node['name'],
+                'variableName': top_node['variableName'],
+                'resourceType': 'product_family',
+                'granular': top_node['granular'],
+                'children': []
+            }
             
-            if nested_children:
-                all_product_family_wrapper['children'] = nested_children
-                node_obj['children'] = [all_product_family_wrapper]
+            # Build children for the inner top node
+            inner_children = self._build_children_for_segment(top_var, path_data)
+            if inner_children:
+                inner_top_node['children'] = inner_children
             
-            result.append(node_obj)
+            all_product_family['children'] = [inner_top_node]
+            top_node['children'] = [all_product_family]
+            
+            result.append(top_node)
         
         return result
     
-    def _build_nested_structure(self, node: Dict) -> List[Dict[str, Any]]:
+    def _build_children_for_segment(self, parent_var: str, path_data: Dict) -> List[Dict[str, Any]]:
         """
-        Recursively build the nested children structure.
+        Build children for a given parent segment.
         """
-        children = []
+        children_dict = {}
         
-        for key, child_node in node['_children'].items():
-            child_obj = {
-                'name': child_node['_info']['name'],
-                'variableName': child_node['_info']['variableName'],
-                'resourceType': child_node['_info']['resourceType'],
-                'granular': child_node['_info']['granular']
-            }
+        for path, data in path_data.items():
+            segments = data['segments']
             
-            nested_children = self._build_nested_structure(child_node)
-            leaf_children = child_node['_leaf_children']
-            
-            all_children = nested_children + leaf_children
-            
-            if all_children:
-                child_obj['children'] = all_children
-            
-            children.append(child_obj)
+            # Check if this path starts with parent_var
+            if len(segments) > 0 and segments[0] == parent_var:
+                if len(segments) > 1:
+                    # Process next level
+                    next_segment = segments[1]
+                    full_path = '.'.join(segments[:2])
+                    
+                    if next_segment not in children_dict:
+                        # Determine resourceType based on depth and transaction_var
+                        resource_type = self._get_resource_type(segments, 1, data['transaction_type'])
+                        
+                        children_dict[next_segment] = {
+                            'name': next_segment.capitalize(),
+                            'variableName': next_segment,
+                            'resourceType': resource_type,
+                            'granular': data['granular'],
+                            '_children': [],
+                            '_leaf_children': []
+                        }
+                    
+                    # Add deeper children or leaf children
+                    if len(segments) > 2:
+                        # Has more nesting
+                        next_path = '.'.join(segments[1:])
+                        deeper_children = self._build_children_for_segment(next_segment, 
+                                                                           {next_path: {
+                                                                               'segments': segments[1:],
+                                                                               'transaction_type': data['transaction_type'],
+                                                                               'granular': data['granular'],
+                                                                               'children': data['children']
+                                                                           }})
+                        children_dict[next_segment]['_children'].extend(deeper_children)
+                    elif path == full_path:
+                        # This is the target path, add leaf children
+                        children_dict[next_segment]['_leaf_children'].extend(data['children'])
+                elif len(segments) == 1 and segments[0] == parent_var:
+                    # Leaf children at this level
+                    if '_direct_children' not in children_dict:
+                        children_dict['_direct_children'] = []
+                    children_dict['_direct_children'].extend(data['children'])
         
-        children.extend(node['_leaf_children'])
+        # Convert to list and merge children
+        result = []
+        for key, node in children_dict.items():
+            if key == '_direct_children':
+                result.extend(node)
+            else:
+                node_obj = {
+                    'name': node['name'],
+                    'variableName': node['variableName'],
+                    'resourceType': node['resourceType'],
+                    'granular': node['granular']
+                }
+                
+                all_children = node['_children'] + node['_leaf_children']
+                if all_children:
+                    node_obj['children'] = all_children
+                
+                result.append(node_obj)
         
-        return children
+        return result
+    
+    def _get_resource_type(self, segments: List[str], depth: int, transaction_type: str) -> str:
+        """
+        Determine resource type based on depth and transaction type.
+        """
+        type_hierarchy = ['product_family', 'product_line', 'model']
+        
+        # If this is the last segment, use transaction_type
+        if depth == len(segments) - 1:
+            return transaction_type
+        
+        # Otherwise, work backwards from transaction_type
+        if transaction_type in type_hierarchy:
+            trans_index = type_hierarchy.index(transaction_type)
+            levels_from_end = len(segments) - 1 - depth
+            target_index = trans_index - levels_from_end
+            return type_hierarchy[max(0, target_index)]
+        
+        return 'product_family'
