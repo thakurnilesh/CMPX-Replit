@@ -16,9 +16,12 @@ class JSONGenerator:
             raise TypeError("excel_data must be a pandas DataFrame.")
         self.excel_data = excel_data.copy()  # Work on copy to avoid modifying the original DataFrame
 
-    def generate(self):
+    def generate(self, package_name=None):
         """
         Generates the JSON payload from the DataFrame.
+        
+        Args:
+            package_name (str, optional): The name of the migration package. If not provided, user will be prompted.
         """
         try:
             print("Getting Started")
@@ -70,7 +73,9 @@ class JSONGenerator:
                 elif row['itemName'] == 'Data Table':
                     df.at[idx, 'resourceType'] = 'data_table_folder'
             
-            package_name = input("Enter the Package Name: ")
+            # Get package name - ask only if not provided
+            if package_name is None:
+                package_name = input("Enter the Package Name: ")
             # Get package name (should be the same for all rows)
             #if df['PackageName'].empty:
             #    raise ValueError("PackageName column is empty.")

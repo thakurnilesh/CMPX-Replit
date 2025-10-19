@@ -56,7 +56,7 @@ def main():
             print("\n[Step 1/2] Generating payload for standard items...")
             non_config_data = excel_data[excel_data['itemName'] != 'Configuration']
             standard_generator = JSONGenerator(non_config_data)
-            standard_payload = standard_generator.generate()
+            standard_payload = standard_generator.generate(package_name)
             
             print("\nStandard Items Payload:")
             print(json.dumps(standard_payload, indent=4))
